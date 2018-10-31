@@ -1,6 +1,6 @@
 {
   "name": "are-hook-inputs-equal",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A comparator function for previous and current React hook inputs.",
   "main": "./dist/are-hook-inputs-equal.cjs.js",
   "module": "./dist/are-hook-inputs-equal.esm.js",

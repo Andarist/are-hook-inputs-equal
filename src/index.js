@@ -1,27 +1,35 @@
-// https://github.com/facebook/react/blob/e02086bfcc698d02a41a7785a1027a94dbc88eea/packages/react-reconciler/src/ReactFiberHooks.js#L763-L791
-export default function areHookInputsEqual(arr1, arr2) {
-  // Don't bother comparing lengths in prod because these arrays should be
-  // passed inline.
-  if (process.env.NODE_ENV !== 'production') {
+/**
+ * inlined Object.is polyfill to avoid requiring consumers ship their own
+ * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
+ */
+function objectIsPonyfill(x, y) {
+  return (x === y && (x !== 0 || 1 / x === 1 / y)) || (x !== x && y !== y)
+}
+
+const is = typeof Object.is === 'function' ? Object.is : objectIsPonyfill
+
+// https://github.com/facebook/react/blob/1022ee0ec140b8fce47c43ec57ee4a9f80f42eca/packages/react-reconciler/src/ReactFiberHooks.js#L326-L373
+export default function areHookInputsEqual(nextDeps, prevDeps) {
+  if (prevDeps === null) {
+    return false
+  }
+
+  if (
+    process.env.NODE_ENV !== 'production' &&
+    nextDeps.length !== prevDeps.length
+  ) {
+    // Don't bother comparing lengths in prod because these arrays should be
+    // passed inline.
     console.warn(
-      arr1.length === arr2.length,
-      'Detected a variable number of hook dependencies. The length of the ' +
-        'dependencies array should be constant between renders.\n\n' +
-        `Previous: ${arr1.join(', ')}\n` +
-        'Incoming: ${arr2.join(',
-      ')}',
+      'Input have different size. The ' +
+        'order and size of this array must remain constant.\n\n' +
+        `Previous: [${prevDeps.join(', ')}]\n` +
+        `Incoming: [${nextDeps.join(', ')}]`,
     )
   }
 
-  for (let i = 0; i < arr1.length; i++) {
-    // Inlined Object.is polyfill.
-    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is
-    const val1 = arr1[i]
-    const val2 = arr2[i]
-    if (
-      (val1 === val2 && (val1 !== 0 || 1 / val1 === 1 / val2)) ||
-      (val1 !== val1 && val2 !== val2)
-    ) {
+  for (let i = 0; i < prevDeps.length && i < nextDeps.length; i++) {
+    if (is(nextDeps[i], prevDeps[i])) {
       continue
     }
     return false
